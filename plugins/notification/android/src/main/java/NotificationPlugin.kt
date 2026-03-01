@@ -134,6 +134,17 @@ class NotificationPlugin(private val activity: Activity): Plugin(activity) {
   @Command
   fun show(invoke: Invoke) {
     val notification = invoke.parseArgs(Notification::class.java)
+
+    // Populate sourceJson so buildIntent() can pass data through the click intent.
+    // Use invoke.getArgs() for extra because Jackson can't deserialize into JSObject.
+    val args = invoke.getArgs()
+    val json = JSObject()
+    json.put("id", notification.id)
+    json.put("title", notification.title)
+    json.put("body", notification.body)
+    json.put("extra", args.optJSONObject("extra"))
+    notification.sourceJson = json.toString()
+
     val id = manager.schedule(notification)
 
     invoke.resolveObject(id)
